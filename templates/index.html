@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{api|safe}}"></script>
+    <script src="https://unpkg.com/location-picker/dist/location-picker.min.js"></script>
+
+    <style>
+        #map {
+            width: 100%;
+            height: 480px;
+        }
+        .custom-map-control-button {
+            height: 50px
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <p>drag to your desired location. zoom in to your desired zoom. choose width and height</p>
+    
+    <input type="number" value="5" id="width" min="1">
+    <label for="width">tiles long</label>
+    <br>
+    <input type="number" value="5" id="height" min="1">
+    <label for="height">tiles high</label>
+    <br>
+    <label>select map type</label>
+    <select id="type">
+        <option value="y">hybrid</option>
+        <option value="s">satelite</option>
+        <option value="t">topograpical</option>
+        <option value="m">map</option>
+    </select>
+    <br>
+    <button onclick="sub()">submit</button>
+</body>
+<script>
+    places = [
+      {"lat":34.1340258,"lng":-118.3238652},
+      {"lat":40.7485492,"lng":-73.9879522},
+      {"lat":29.4259718,"lng":-98.4883306},
+      {"lat":44.4604826,"lng":-110.8303264}
+    ]
+    var locationPicker = new locationPicker('map', {
+        setCurrentPosition: false, // You can omit this, defaults to true -->
+    }, {
+        zoom: 15, // You can set any google map options here, zoom defaults to 15
+        mapTypeId: 'hybrid',
+        center: places[Math.floor(Math.random() * places.length)]
+    });
+
+    let map, infoWindow;
+
+function initMap() {
+  map = locationPicker.map
+  infoWindow = new google.maps.InfoWindow();
+  map.setOptions({ minZoom: 1, maxZoom: 17 });
+  const locationButton = document.createElement("button");
+
+  locationButton.textContent = "Pan to Current Location";
+  locationButton.classList.add("custom-map-control-button");
+  map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(locationButton);
+  locationButton.addEventListener("click", () => {
+    // Try HTML5 geolocation.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          map.setCenter(pos);
+          map.setZoom(17);
+        },
+        () => {
+          handleLocationError(true, infoWindow, map.getCenter());
+        }
+      );
+    } else {
+      // Browser doesn't support Geolocation
+      handleLocationError(false, infoWindow, map.getCenter());
+    }
+  });
+}
+initMap();
+function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+  infoWindow.setPosition(pos);
+  infoWindow.setContent(
+    browserHasGeolocation
+      ? "Error: The Geolocation service failed."
+      : "Error: Your browser doesn't support geolocation."
+  );
+
+}
+    function sub() {
+        var l = locationPicker.getMarkerPosition()
+        location.href = "/"+l["lat"]+"/"+l["lng"]+"/"+locationPicker.map.getZoom()+"/"+document.getElementById("width").value+"/"+document.getElementById("height").value+"/"+document.getElementById("type").value;
+    }
+</script>
+</html>
